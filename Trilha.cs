@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Projeto_Aprendizado_com_interface
+namespace Jogo_da_Trilha
 {
     internal class Trilha
     {

@@ -1,4 +1,4 @@
-﻿namespace Projeto_Aprendizado_com_interface
+﻿namespace Jogo_da_Trilha
 {
     partial class Tabuleiro
     {
@@ -486,7 +486,7 @@
             // 
             // painelTabuleiro
             // 
-            this.painelTabuleiro.BackgroundImage = global::Projeto_Aprendizado_com_interface.Properties.Resources.tabuleiro;
+            this.painelTabuleiro.BackgroundImage = global::Jogo_da_Trilha.Properties.Resources.tabuleiro;
             this.painelTabuleiro.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.painelTabuleiro.Controls.Add(this.displayTempo);
             this.painelTabuleiro.Controls.Add(this.dispPcRest);
@@ -577,7 +577,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.BackgroundImage = global::Projeto_Aprendizado_com_interface.Properties.Resources.Regred;
+            this.BackgroundImage = global::Jogo_da_Trilha.Properties.Resources.Regred;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(426, 528);
             this.Controls.Add(this.painelChat);

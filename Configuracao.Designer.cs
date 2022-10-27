@@ -1,4 +1,4 @@
-﻿namespace Projeto_Aprendizado_com_interface
+﻿namespace Jogo_da_Trilha
 {
     partial class Configuracao
     {

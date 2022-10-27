@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Projeto_Aprendizado_com_interface
+namespace Jogo_da_Trilha
 {
     public partial class Tabuleiro : Form
     {
