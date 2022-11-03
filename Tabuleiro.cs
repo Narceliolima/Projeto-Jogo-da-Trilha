@@ -1,65 +1,89 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Media;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Jogo_da_Trilha
 {
+    /*
+     * Tabuleiro e a classe responsável por conter a maior parte da lógica do Jogo, nela conterá tanto a parte da interface
+     * com o usuário, quanto a parte da ação dos jogadores e interação entre eles e o jogo e também conterá
+     * parte da conexão necessária para a comunicação entre os jogadores.
+     */
     public partial class Tabuleiro : Form
     {
-        private List<No> nos = new List<No>();
-        private List<Trilha> trilhas = new List<Trilha>();
-        private List<Button> botoes = new List<Button>();
-        private readonly int[,] matrix = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 }, 
-                                           { 9, 10, 11 }, { 12, 13, 14 }, { 15, 16, 17 }, 
-                                           { 18, 19, 20 }, { 21, 22, 23 }, { 0, 9, 21 }, 
-                                           { 3, 10, 18 }, { 6, 11, 15 }, { 1, 4, 7 }, { 16, 19, 22 }, 
-                                           { 8, 12, 17 }, { 5, 13, 20 }, { 2, 14, 23 } };
+        //--------------------------------------/Variáveis de controle do Jogo/--------------------------------------//
+        /*
+         * Essas variaveis irão compor a maior parte da lógica do jogo, sendo padrão em ambos os pontos (em termos
+         * de quantidades de nós, quantidade de trilhas, propriedades e trincas), assim então na maior parte do
+         * jogo ela estará sincronizada entre os pontos.
+         */
 
+        private List<No> nos = new List<No>();              //Lista contendo os nós pertencentes ao tabuleiro.
+        private List<Trilha> trilhas = new List<Trilha>();  //Lista das trilhas.
+        private List<Button> botoes = new List<Button>();   //Lista de botões sendo utilizada para mapeamento entre botões e nós.
+
+        //Vetor contendo as cores utilizadas para identificar cada jogador.
         private readonly Color[] cor = { Color.Transparent, Color.Red, Color.Blue };
-        private string[] nicks = { "Missigno", "Jogador 1", "Jogador 2"};
-        private bool suaVez = false;
-        private bool removePeca = false;
-        private int jogador = 0;
-        private int oponente = 0;
-        private const int padraoQntPecas = 9;
-        private int pecasTotal = padraoQntPecas;
-        private int pecasPJogar = padraoQntPecas;
-        private int ultimaPosicao = -1;
-        private int contPassVez = 5;
-        private int tempoRestante = 60;
-        
-        //Conexão
+
+        //Matriz contendo todas as possiveis trincas do jogo, sendo usada só como referencia.
+        private readonly int[,] matrix = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 },
+                                           { 9, 10, 11 }, { 12, 13, 14 }, { 15, 16, 17 },
+                                           { 18, 19, 20 }, { 21, 22, 23 }, { 0, 9, 21 },
+                                           { 3, 10, 18 }, { 6, 11, 15 }, { 1, 4, 7 }, { 16, 19, 22 },
+                                           { 8, 12, 17 }, { 5, 13, 20 }, { 2, 14, 23 } };
+        //--------------------------------------///--------------------------------------//
+
+        //--------------------------------------/Variáveis de controle entre os Jogadores/--------------------------------------//
+        /*
+         * As variaveis daqui serão utilizadas para controlar o turno/jogadas e a identificação entre os jogadores
+         * na maior parte do jogo elas costumam ser diferentes entre os pontos.
+         */
+
+        //Vetor que guarda os nicks dos jogadores o indice 0 contem um jogador vazio. (Que não existe)
+        private string[] nicks = { "Missigno", "Jogador 1", "Jogador 2" }; 
+
+        private bool suaVez = false;                //Booleano que representa a quem pertence o turno atual.
+        private bool removePeca = false;            //Booleano responsável pela jogada de remoção de peças é ativado logo após o jogador formar trinca.
+        private int jogador = 0;                    //0 = Não é jogador, 1 = Jogador 1, 2 = Jogador 2.
+        private int oponente = 0;                   //Mesma identificação da variavel acima.
+        private const int padraoQntPecas = 9;       //Variavel contendo a quantidade de peças padrão do jogo.
+        private int pecasTotal = padraoQntPecas;    //Pecas restantes que o jogador possui no jogo.
+        private int pecasPJogar = padraoQntPecas;   //Quantidade de peças restantes para jogar no tabuleiro.
+        private int ultimaPosicao = -1;             //Utilizada quando é necessário mover uma peça para outro ponto, guarda a posição anterior da peça movida.
+        private int contPassVez = 5;                //Contador para passar a vez caso não haja jogada disponível.
+        private int tempoRestante = 60;             //Tempo disponivel para o jogador executar sua jogada.
+        //--------------------------------------///--------------------------------------//
+
+        //Conexão com o oponente.
         Conexao conexao;
 
+        /*
+         * Construtor da classe Tabuleiro.
+         */
         public Tabuleiro()
         {
+            //Cria a classe "Configuracao" para pegar os parametros iniciais de configuração dos usuários.
             Configuracao configTela = new Configuracao();
-            
+
             InitializeComponent();
-            
-            configTela.ShowDialog();
-            conexao = configTela.receberConexao();
-            jogador = configTela.receberJogador();
+
+            configTela.ShowDialog();                //Apresenta a tela de configuração.
+            conexao = configTela.receberConexao();  //Recebe os parametros da conexão com o oponente.
+            jogador = configTela.receberJogador();  //Recebe o
             String nickDoJogador = configTela.receberNick();
 
             inicializaVariaveis();
 
-            if(nickDoJogador == "Jogador")
+            if (nickDoJogador == "Jogador")
             {
-                nickDoJogador += " "+jogador;
+                nickDoJogador += " " + jogador;
             }
 
-            if (jogador==1)
+            if (jogador == 1)
             {
                 suaVez = true;
                 oponente = 2;
@@ -87,9 +111,9 @@ namespace Jogo_da_Trilha
 
         private void inicializaVariaveis()
         {
-            for(int i = 0; i < 24; i++)
+            for (int i = 0; i < 24; i++)
             {
-                nos.Add(new No(i,0));
+                nos.Add(new No(i, 0));
             }
 
             for (int i = 0; i < 16; i++)
@@ -136,7 +160,7 @@ namespace Jogo_da_Trilha
         private void atualizaInterface()
         {
             int i = 0;
-            foreach(Button botao in botoes)
+            foreach (Button botao in botoes)
             {
                 botao.Text = "";
                 botao.BackColor = cor[nos[i].propriedade];
@@ -154,7 +178,7 @@ namespace Jogo_da_Trilha
                 display.BackColor = cor[oponente];
             }
 
-            if(pecasPJogar > 0)
+            if (pecasPJogar > 0)
             {
                 dispPcRest.Text = "Peças para Jogar: " + pecasPJogar;
             }
@@ -270,7 +294,7 @@ namespace Jogo_da_Trilha
                     bool adjacenteETrilha = false;
                     foreach (Trilha trilha in nos[botoes.IndexOf((Button)sender)].trilhas)
                     {
-                        if (nos[ultimaPosicao].trilhas.Contains(trilha) && 
+                        if (nos[ultimaPosicao].trilhas.Contains(trilha) &&
                             Math.Abs(Array.IndexOf(trilha.nos, nos[ultimaPosicao]) - Array.IndexOf(trilha.nos, nos[botoes.IndexOf((Button)sender)])) == 1)
                         {
                             adjacenteETrilha = true;
@@ -317,12 +341,12 @@ namespace Jogo_da_Trilha
 
         private void apertouEnter(object sender, KeyPressEventArgs e)
         {
-            if (Convert.ToInt32(e.KeyChar) == 13 && chat.Text!="")
+            if (Convert.ToInt32(e.KeyChar) == 13 && chat.Text != "")
             {
                 e.Handled = true;
                 string mensagem = nicks[jogador] + ": " + chat.Text;
-                conexao.escreveMensagem("chat>"+mensagem);
-                textoChat.Text += mensagem+"\r\n";
+                conexao.escreveMensagem("chat>" + mensagem);
+                textoChat.Text += mensagem + "\r\n";
                 chat.Clear();
             }
         }
@@ -361,40 +385,40 @@ namespace Jogo_da_Trilha
                     MessageBox.Show("A conexão foi encerrada de forma inesperada.\nO Jogo será encerrado.", "Erro de conexão");
                     mensagem = "desi>";
                 }
-                
+
                 string comando = mensagem.Substring(0, 5);
                 mensagem = mensagem.Remove(0, 5);
-                
-                if(comando == "chat>")
+
+                if (comando == "chat>")
                 {
                     textoChat.Text += mensagem + "\r\n";
                 }
-                else if(comando == "joga>")
+                else if (comando == "joga>")
                 {
-                    string[] chavesSplit = {"//"};
+                    string[] chavesSplit = { "//" };
                     string[] jogada = mensagem.Split(chavesSplit, StringSplitOptions.RemoveEmptyEntries);
                     adquirePropriedade(Convert.ToInt32(jogada[0]), Convert.ToInt32(jogada[1]));
                     atualizaInterface();
                     verificaTrinca();
                 }
-                else if(comando == "remP>")
+                else if (comando == "remP>")
                 {
                     pecasTotal--;
                 }
-                else if(comando == "seuT>")
+                else if (comando == "seuT>")
                 {
                     suaVez = true;
                     atualizaInterface();
                     verificaVitoria();
                 }
-                else if(comando == "desi>")
+                else if (comando == "desi>")
                 {
                     MessageBox.Show("Você Venceu", "Finalizar");
                     finalizarPrograma(new Object(), new FormClosedEventArgs(new CloseReason()));
                 }
-                else if(comando == "nick>")
+                else if (comando == "nick>")
                 {
-                    if(jogador == 1)
+                    if (jogador == 1)
                     {
                         nicks[2] = mensagem;
                     }
